@@ -7,7 +7,7 @@ commands that author, build, sign and simulate policy bundles on your own
 machine.
 
 ```bash
-npm install --global @govplane/cli @govplane/toolkit
+npm install --global @govplane/cli @govplane/cli-toolkit
 govplane activate      # free, one-time, needs only an email address
 ```
 
@@ -55,7 +55,7 @@ The toolkit is productivity tooling, and everything it produces stays yours.
 ## Installation
 
 ```bash
-npm install --global @govplane/cli @govplane/toolkit
+npm install --global @govplane/cli @govplane/cli-toolkit
 ```
 
 Or, from the CLI:
@@ -250,4 +250,4 @@ Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and the
 
 ## License
 
-[MIT](LICENSE) © Govplane
+[MIT](LICENSE) © Platformstack Technologies OÜ. and contributors. See [NOTICE.md](NOTICE.md) for third-party notices.

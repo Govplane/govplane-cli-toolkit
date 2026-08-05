@@ -241,12 +241,12 @@ describe('the simulator uses the runtime engine', () => {
     expect(decision).toMatchObject({ decision: 'allow', reason: 'default' });
   });
 
-  it('applies a policy default even to a target that policy has no rule for', () => {
-    // The engine treats every policy's default as a synthetic match whenever
-    // that policy produced no rule match. A bundle containing one allow-by-
-    // default policy therefore allows unrelated targets too. Simulation reports
-    // that faithfully rather than second-guessing it — surfacing it is the
-    // point of the command.
+  it('does not apply a policy default to a target that policy has no rule for', () => {
+    // A policy's default speaks only for the targets it governs, which are the
+    // targets its rules name. `login-protection` has nothing to say about a
+    // health check, so its allow default does not stand in and the target falls
+    // to deny-by-default. Simulation reports that faithfully — surfacing what
+    // the runtime will actually decide is the point of the command.
     const simulator = createSimulator(bundle());
     const { decision } = simulator.evaluate(
       { service: 'api', resource: '/health', action: 'request' },
@@ -254,11 +254,8 @@ describe('the simulator uses the runtime engine', () => {
       'off',
     );
 
-    expect(decision).toMatchObject({
-      decision: 'allow',
-      reason: 'default',
-      policyKey: 'login-protection',
-    });
+    expect(decision).toMatchObject({ decision: 'deny', reason: 'default' });
+    expect(decision.policyKey).toBeUndefined();
   });
 
   it('denies by default when no policy offers one', () => {

@@ -1,15 +1,20 @@
 name: Release
 
-# Publishes to npm with an automation token, with provenance attached.
+# Publishes to npm through **trusted publishing**, with provenance attached.
 #
-# Requires an `NPM_TOKEN` secret on the repository — an npm **granular access
-# token**, scoped to this package only, with read and write permission and an
-# expiry set. A classic automation token works but grants far more than this
-# workflow needs.
+# There is no publish token. npm exchanges the workflow's OIDC identity for a
+# short-lived credential, which is why `id-token: write` is required below and
+# why no `NPM_TOKEN` secret appears anywhere in this file. Nothing long-lived
+# exists to leak, and the publish satisfies npm's 2FA requirement — a stored
+# token no longer does, since npm began restricting tokens that bypass 2FA.
 #
-# Provenance still applies: `id-token: write` and `--provenance` below are what
-# produce the "Built and signed on GitHub Actions" badge. With a token they are
-# explicit, where trusted publishing would supply both on its own.
+# Configured on npmjs.com under the package's Trusted Publisher settings, naming
+# this repository and this workflow file. If that entry is missing or names a
+# different workflow, `npm publish` fails with a 404 or an authentication error
+# rather than anything that mentions OIDC — check there first.
+#
+# Requires npm 11.5.1 or later, which the pinned `npm@latest` step below
+# guarantees regardless of what the runner image ships.
 #
 # Release by tagging a commit on main whose CI is already green:
 #   git tag v1.0.0 && git push origin v1.0.0
@@ -20,7 +25,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write        # required for provenance, even when using a token
+  id-token: write        # the credential itself: provenance and trusted publishing both need it
 
 jobs:
   publish:
@@ -29,16 +34,64 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No `registry-url:` on purpose. With it, setup-node writes an .npmrc
+      # containing `_authToken=${NODE_AUTH_TOKEN}` and exports that variable as
+      # the literal placeholder `XXXXX-XXXXX-XXXXX-XXXXX`. npm then finds a
+      # credential, uses it instead of performing the OIDC exchange, and the
+      # publish fails with `404 on PUT` — which names the package rather than the
+      # cause. Without it npm has no credential, so trusted publishing engages.
+      # The default registry is registry.npmjs.org and no package overrides it.
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
           cache: npm
 
-      # Provenance needs npm 9.5.0 or later. Node 22 ships something newer, but
-      # pinning to latest keeps this from silently depending on the runner image.
-      - name: Use an npm that supports provenance
+      # Trusted publishing needs npm 11.5.1 or later; provenance needs 9.5.0.
+      # Pinning to latest keeps this from silently depending on the runner image.
+      - name: Use an npm that supports trusted publishing
         run: npm install --global npm@latest
+
+      # Trusted publishing has three preconditions, and when one is missing npm
+      # says only `ENEEDAUTH` — the same thing it says for a plain missing token.
+      # This reports each one so a failure names its own cause. No secret is
+      # printed: the OIDC variables are reported as present or absent only.
+      - name: Check the preconditions for trusted publishing
+        run: |
+          NPM_VERSION=$(npm --version)
+          echo "npm:      $NPM_VERSION"
+          echo "registry: $(npm config get registry)"
+
+          node -e '
+            const [maj, min, patch] = process.argv[1].split(".").map(Number);
+            const ok = maj > 11 || (maj === 11 && (min > 5 || (min === 5 && patch >= 1)));
+            console.log("npm >= 11.5.1: " + (ok ? "yes" : "NO — trusted publishing is unsupported"));
+            if (!ok) process.exitCode = 1;
+          ' "$NPM_VERSION"
+
+          # Set by the runner only when the job has `id-token: write`. Without
+          # them npm cannot request an OIDC token and falls back to ENEEDAUTH.
+          if [ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ] && [ -n "$ACTIONS_ID_TOKEN_REQUEST_TOKEN" ]; then
+            echo "OIDC request variables: present"
+          elif [ -n "$NPM_TOKEN" ]; then
+            # The bootstrap publish does not need OIDC, so a missing token
+            # request is not fatal here — only worth saying out loud.
+            echo "::warning::OIDC request variables are absent, but NPM_TOKEN is set, so this release will publish on the bootstrap path."
+          else
+            echo "::error::No credential available: OIDC request variables are absent and NPM_TOKEN is unset. Grant 'id-token: write' and lift any organisation restriction on it, or set NPM_TOKEN for a bootstrap publish."
+            exit 1
+          fi
+
+          # A stale credential takes precedence over OIDC and produces a 404 on
+          # PUT rather than an exchange. The bootstrap step writes its own
+          # .npmrc deliberately; anything already here is not that.
+          for f in .npmrc "$NPM_CONFIG_USERCONFIG" "$HOME/.npmrc"; do
+            if [ -n "$f" ] && [ -f "$f" ]; then
+              echo "::warning::An npmrc exists at $f — if it carries a token, it will be used instead of OIDC."
+              grep -c "_authToken" "$f" | sed 's/^/  _authToken lines: /'
+            fi
+          done
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - run: npm ci
 
@@ -71,7 +124,42 @@ jobs:
         with:
           args: --severity-threshold=high
 
+      # Bootstrap only, and temporary.
+      #
+      # A Trusted Publisher is configured against a package, and this package
+      # does not exist until the first publish succeeds — so the first release
+      # cannot use OIDC and needs a token. Every release after it should not.
+      #
+      # The test is on the value rather than on `secrets` in an `if:`, so the
+      # workflow needs no edit to switch over: once the package exists, configure
+      # its Trusted Publisher on npmjs.com and delete the NPM_TOKEN secret. This
+      # step then writes nothing, npm finds no credential, and the OIDC exchange
+      # takes over on its own.
+      #
+      # Note the indirection: the file holds `${NPM_TOKEN}`, not the token, so
+      # npm expands it from the environment at publish time and the secret never
+      # lands on disk.
+      - name: Authenticate the bootstrap publish
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+            echo "::warning::Publishing with NPM_TOKEN. This is the bootstrap path for a package that does not exist yet. Once it is published, configure its Trusted Publisher on npmjs.com and delete the NPM_TOKEN secret so releases stop depending on a stored credential."
+          else
+            echo "No NPM_TOKEN set — publishing through trusted publishing (OIDC)."
+          fi
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # `--provenance` works on both paths: the earlier token-based runs signed a
+      # provenance statement before failing to authenticate, so the bootstrap
+      # release keeps its "Built and signed on GitHub Actions" badge.
       - name: Publish
         run: npm publish --access public --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # The credential is job-scoped, but leaving it behind would let any later
+      # step read it, and a stale .npmrc is exactly what caused the 404 earlier.
+      - name: Remove the bootstrap credential
+        if: always()
+        run: rm -f .npmrc

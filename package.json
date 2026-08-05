@@ -1,5 +1,5 @@
 {
-  "name": "@govplane/toolkit",
+  "name": "@govplane/cli-toolkit",
   "version": "1.0.0",
   "description": "Govplane CLI Toolkit — the free advanced toolkit for building, signing and simulating Govplane policy bundles locally.",
   "keywords": [
@@ -12,13 +12,13 @@
     "bundle",
     "signing"
   ],
-  "homepage": "https://github.com/govplane/govplane-toolkit#readme",
+  "homepage": "https://github.com/Govplane/govplane-cli-toolkit#readme",
   "bugs": {
-    "url": "https://github.com/govplane/govplane-toolkit/issues"
+    "url": "https://github.com/Govplane/govplane-cli-toolkit/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/govplane/govplane-toolkit.git"
+    "url": "git+https://github.com/Govplane/govplane-cli-toolkit.git"
   },
   "license": "MIT",
   "author": "Govplane",
@@ -44,7 +44,7 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=20.19.0"
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",

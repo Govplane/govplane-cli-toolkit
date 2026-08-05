@@ -1,5 +1,5 @@
 /**
- * Public API of `@govplane/toolkit` — the Govplane CLI Toolkit.
+ * Public API of `@govplane/cli-toolkit` — the Govplane CLI Toolkit.
  *
  * `commands` is the contract with the basic CLI: `@govplane/cli` imports this
  * module by name at startup and merges the exported commands into its registry.

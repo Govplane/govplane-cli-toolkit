@@ -26,7 +26,7 @@ the commands that author, build, sign and simulate policy bundles locally.
 ## The short version
 
 ```bash
-npm install --global @govplane/cli @govplane/toolkit
+npm install --global @govplane/cli @govplane/cli-toolkit
 govplane activate
 ```
 

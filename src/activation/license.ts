@@ -127,7 +127,7 @@ export const verifyLicense = (
       problem: 'LICENSE_UNKNOWN_KEY',
       reason: `This licence was signed with key "${license.signature.keyId}", which this `
         + 'version does not recognise. Update the toolkit with: '
-        + 'npm install --global @govplane/toolkit@latest',
+        + 'npm install --global @govplane/cli-toolkit@latest',
       source,
       path,
     };

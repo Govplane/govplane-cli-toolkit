@@ -5,7 +5,7 @@ existing `govplane` executable picks up, so parsing, help, output formats and
 exit codes stay identical whichever executable was invoked.
 
 ```text
-@govplane/cli                       @govplane/toolkit
+@govplane/cli                       @govplane/cli-toolkit
 ─────────────                       ─────────────────
 bin/govplane.js
   └── main()
@@ -21,7 +21,7 @@ bin/govplane.js
 
 ## How discovery works
 
-`@govplane/cli` resolves `@govplane/toolkit` **by name at runtime**, holding the
+`@govplane/cli` resolves `@govplane/cli-toolkit` **by name at runtime**, holding the
 specifier in a variable so nothing is statically linked. Three consequences, all
 intended:
 
@@ -37,7 +37,7 @@ The reverse direction is a normal dependency: the toolkit imports
 signature verification and file helpers. Nothing is reimplemented.
 
 Resolution works because Node walks up from the CLI's own location: in a global
-install (`npm i -g @govplane/cli @govplane/toolkit`) and in a project-local
+install (`npm i -g @govplane/cli @govplane/cli-toolkit`) and in a project-local
 install, both packages sit in the same `node_modules`, so the walk finds the kit.
 
 `bin/govplane-toolkit.js` exists for the case that walk cannot cover — a

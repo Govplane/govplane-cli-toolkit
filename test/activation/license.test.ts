@@ -106,7 +106,7 @@ describe('verifyLicense', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.problem).toBe('LICENSE_UNKNOWN_KEY');
-      expect(result.reason).toContain('npm install --global @govplane/toolkit@latest');
+      expect(result.reason).toContain('npm install --global @govplane/cli-toolkit@latest');
     }
   });
 });

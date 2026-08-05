@@ -178,7 +178,7 @@ needed:
 ```text
 This licence was signed with key "license-key-02", which this version does not
 recognise. Update the toolkit with:
-  npm install --global @govplane/toolkit@latest
+  npm install --global @govplane/cli-toolkit@latest
 ```
 
 That is deliberately not phrased as tampering — an out-of-date CLI is a much more

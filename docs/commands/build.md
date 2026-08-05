@@ -198,6 +198,56 @@ Secret precedence: `--hmac-secret`, then `--hmac-secret-env`, then
 `build.signing.hmacSecretEnv`. **Prefer the environment forms** — a secret passed
 as `--hmac-secret` lands in your shell history and in the process list.
 
+### Generating a key pair
+
+`ECDSA_SHA_256` needs a **P-256** (`prime256v1`) key pair. `openssl` ships with
+macOS and most Linux distributions:
+
+```bash
+mkdir -p keys && chmod 700 keys
+
+# Private key — keep it out of the repository
+openssl ecparam -name prime256v1 -genkey -noout -out keys/signing-private.pem
+chmod 600 keys/signing-private.pem
+
+# Public key — this is the one you distribute to verifiers
+openssl pkey -in keys/signing-private.pem -pubout -out keys/signing-public.pem
+```
+
+Node produces the same pair, which avoids the differences between OpenSSL and
+the LibreSSL that older macOS versions ship:
+
+```bash
+mkdir -p keys && chmod 700 keys && node -e '
+const { generateKeyPairSync } = require("crypto");
+const { writeFileSync } = require("fs");
+const { publicKey, privateKey } = generateKeyPairSync("ec", { namedCurve: "prime256v1" });
+writeFileSync("keys/signing-private.pem", privateKey.export({ type: "pkcs8", format: "pem" }), { mode: 0o600 });
+writeFileSync("keys/signing-public.pem", publicKey.export({ type: "spki", format: "pem" }));
+'
+```
+
+Either private-key encoding works — `-----BEGIN EC PRIVATE KEY-----` from
+`openssl ecparam`, or `-----BEGIN PRIVATE KEY-----` from Node. The key must be
+**unencrypted**: `build` has no way to prompt for a passphrase, and a protected
+key fails with *"the private key could not be parsed"*.
+
+The public key is what `govplane inspect --signature --public-key` and the SDK's
+`verify` option both read:
+
+```bash
+govplane inspect --signature --public-key ./keys/signing-public.pem
+```
+
+For HMAC, the secret is 64 hex characters:
+
+```bash
+openssl rand -hex 32
+```
+
+Anyone who can verify an HMAC signature can also produce one, so it says a bundle
+was not altered — not who built it. Use ECDSA where that distinction matters.
+
 The signature is embedded inline:
 
 ```json

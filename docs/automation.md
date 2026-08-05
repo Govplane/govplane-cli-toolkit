@@ -49,7 +49,7 @@ jobs:
         with:
           node-version: '22'
 
-      - run: npm install --global @govplane/cli @govplane/toolkit
+      - run: npm install --global @govplane/cli @govplane/cli-toolkit
 
       - name: Confirm the licence is usable
         run: govplane license verify
@@ -66,7 +66,7 @@ policies:
   variables:
     GOVPLANE_HOME: "$CI_PROJECT_DIR/.govplane"
   script:
-    - npm install --global @govplane/cli @govplane/toolkit
+    - npm install --global @govplane/cli @govplane/cli-toolkit
     - govplane license verify
     - govplane validate --strict -w ./governance
 ```
