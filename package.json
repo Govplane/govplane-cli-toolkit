@@ -1,0 +1,79 @@
+{
+  "name": "@govplane/toolkit",
+  "version": "1.0.0",
+  "description": "Govplane CLI Toolkit — the free advanced toolkit for building, signing and simulating Govplane policy bundles locally.",
+  "keywords": [
+    "govplane",
+    "policy",
+    "governance",
+    "authorization",
+    "cli",
+    "toolkit",
+    "bundle",
+    "signing"
+  ],
+  "homepage": "https://github.com/govplane/govplane-toolkit#readme",
+  "bugs": {
+    "url": "https://github.com/govplane/govplane-toolkit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/govplane/govplane-toolkit.git"
+  },
+  "license": "MIT",
+  "author": "Govplane",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "govplane-toolkit": "bin/govplane-toolkit.js"
+  },
+  "files": [
+    "bin",
+    "dist",
+    "docs",
+    "keys/*.pem",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json",
+    "clean": "node --input-type=module -e \"import{rmSync}from'node:fs';rmSync('dist',{recursive:true,force:true})\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "typecheck": "tsc --noEmit",
+    "stub-server": "node scripts/stub-activation-server.mjs",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "comments": {
+    "dependencies": "@govplane/cli is resolved from the sibling working copy while both packages are pre-publication."
+  },
+  "dependencies": {
+    "@govplane/cli": "^1.0.1",
+    "@govplane/runtime-sdk": "^2.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.17.6",
+    "eslint": "^9.39.1",
+    "eslint-config-airbnb-extended": "^3.1.1",
+    "eslint-plugin-import-x": "^4.16.1",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.6.3",
+    "typescript-eslint": "^8.46.1"
+  }
+}

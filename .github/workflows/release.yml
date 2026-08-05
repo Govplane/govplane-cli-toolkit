@@ -1,0 +1,77 @@
+name: Release
+
+# Publishes to npm with an automation token, with provenance attached.
+#
+# Requires an `NPM_TOKEN` secret on the repository — an npm **granular access
+# token**, scoped to this package only, with read and write permission and an
+# expiry set. A classic automation token works but grants far more than this
+# workflow needs.
+#
+# Provenance still applies: `id-token: write` and `--provenance` below are what
+# produce the "Built and signed on GitHub Actions" badge. With a token they are
+# explicit, where trusted publishing would supply both on its own.
+#
+# Release by tagging a commit on main whose CI is already green:
+#   git tag v1.0.0 && git push origin v1.0.0
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write        # required for provenance, even when using a token
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release # gate releases on a required reviewer
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      # Provenance needs npm 9.5.0 or later. Node 22 ships something newer, but
+      # pinning to latest keeps this from silently depending on the runner image.
+      - name: Use an npm that supports provenance
+        run: npm install --global npm@latest
+
+      - run: npm ci
+
+      - name: Verify before publishing
+        run: npm run lint && npm run typecheck && npm run test:coverage
+
+      - name: Confirm the tag matches package.json
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          test "v$VERSION" = "${GITHUB_REF_NAME}" \
+            || { echo "Tag ${GITHUB_REF_NAME} does not match package version $VERSION" >&2; exit 1; }
+
+      # A file: or link: dependency is meaningless on a user's machine and
+      # produces a broken install. npm publish will not warn about it.
+      - name: Refuse unpublishable dependencies
+        run: |
+          node -e "
+            const deps = { ...require('./package.json').dependencies };
+            const bad = Object.entries(deps).filter(([, v]) => /^(file|link):/.test(v));
+            if (bad.length) {
+              console.error('Unpublishable dependencies: ' + JSON.stringify(bad));
+              process.exit(1);
+            }
+          "
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      - name: Publish
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
