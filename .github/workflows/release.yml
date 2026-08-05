@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release # gate releases on a required reviewer
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # No `registry-url:` on purpose. With it, setup-node writes an .npmrc
       # containing `_authToken=${NODE_AUTH_TOKEN}` and exports that variable as
@@ -41,7 +41,7 @@ jobs:
       # publish fails with `404 on PUT` — which names the package rather than the
       # cause. Without it npm has no credential, so trusted publishing engages.
       # The default registry is registry.npmjs.org and no package overrides it.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
