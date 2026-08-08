@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-08-08
+
+### Security
+
+- `resolveApiUrl` no longer trims trailing slashes with `replace(/\/+$/, '')`.
+  That pattern backtracks quadratically: a `GOVPLANE_API_URL` of many slashes
+  followed by any other character cost O(n²) — 40 000 slashes took over half a
+  second. Replaced with a single reverse scan, which is linear and returns the
+  same string for every input. Reported by CodeQL as a polynomial regular
+  expression on uncontrolled data.
+- The local stub activation service (`scripts/stub-activation-server.mjs`, a
+  development-only script that is not part of the published package) escaped
+  neither of the two request-derived values it interpolated into its
+  confirmation page. The activation code lands inside a quoted attribute, so
+  `?code=" onfocus=… autofocus="` broke out of it and ran script. Both values
+  are now HTML-escaped, and the code is additionally narrowed to the alphabet a
+  real code uses. Reported by CodeQL as reflected cross-site scripting.
+
 ## [1.0.0] - 2026-08-05
 
 ### Added
@@ -212,4 +230,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Every CLI Toolkit command is now implemented; none falls back to the CLI's
   built-in placeholder.
 
-[Unreleased]: https://github.com/govplane/govplane-toolkit/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/govplane/govplane-toolkit/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/govplane/govplane-toolkit/compare/v1.0.0...v1.0.1

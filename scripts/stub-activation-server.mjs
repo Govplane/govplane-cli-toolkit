@@ -117,6 +117,38 @@ const sendHtml = (response, status, html) => {
 };
 
 /**
+ * Escapes a value for interpolation into HTML.
+ *
+ * Both values this page interpolates come from the request — the code from a
+ * query string on GET and from the form body on POST — so writing either
+ * straight into the markup is a reflected cross-site scripting hole. The code
+ * lands inside a quoted attribute, where `"` alone is enough to break out and
+ * add an event handler.
+ *
+ * Quotes are escaped as well as angle brackets, so the same function is correct
+ * in both element and attribute context and there is no second helper to reach
+ * for the wrong one.
+ */
+const escapeHtml = (value) => String(value)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+/**
+ * Narrows a submitted code to the shape a real one has.
+ *
+ * Escaping already makes the page safe; this keeps anything that is not a code
+ * from being echoed back at all. `CODE_ALPHABET` plus the separator is the whole
+ * of the vocabulary — see `randomCode`.
+ */
+const sanitiseUserCode = (value) => String(value ?? '')
+  .toUpperCase()
+  .replace(/[^0-9A-Z-]/g, '')
+  .slice(0, 20);
+
+/**
  * The confirmation page.
  *
  * Deliberately mirrors the consent rules the real page must follow: the terms
@@ -144,10 +176,10 @@ const activationPage = (prefilledCode, message) => `<!doctype html>
   <p class="banner"><strong>Stub activation service.</strong> For local development only.</p>
   <h1>Activate the Govplane CLI Toolkit</h1>
   <p>Activation is free and needs only an email address.</p>
-  ${message ? `<p class="msg">${message}</p>` : ''}
+  ${message ? `<p class="msg">${escapeHtml(message)}</p>` : ''}
   <form method="POST" action="/activate">
     <label>Code from your terminal
-      <input type="text" name="userCode" value="${prefilledCode ?? ''}" required>
+      <input type="text" name="userCode" value="${escapeHtml(sanitiseUserCode(prefilledCode))}" required>
     </label>
     <label>Email address
       <input type="email" name="email" required>

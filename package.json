@@ -1,6 +1,6 @@
 {
   "name": "@govplane/cli-toolkit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Govplane CLI Toolkit — the free advanced toolkit for building, signing and simulating Govplane policy bundles locally.",
   "keywords": [
     "govplane",

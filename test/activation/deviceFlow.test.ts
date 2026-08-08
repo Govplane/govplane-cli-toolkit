@@ -252,6 +252,24 @@ describe('resolveApiUrl', () => {
     expect(resolveApiUrl({ GOVPLANE_API_URL: 'http://localhost:8787//' }))
       .toBe('http://localhost:8787');
   });
+
+  it('falls back when the override is blank', () => {
+    expect(resolveApiUrl({ GOVPLANE_API_URL: '   ' })).toBe('https://api.govplane.com');
+  });
+
+  it('trims a run of slashes in linear time', () => {
+    // The previous `replace(/\/+$/, '')` backtracked quadratically on this shape:
+    // 40 000 slashes took over half a second. The bound is deliberately loose so
+    // the test measures the complexity class, not the machine it runs on.
+    const pathological = `${'/'.repeat(200_000)}x`;
+
+    const started = process.hrtime.bigint();
+    const resolved = resolveApiUrl({ GOVPLANE_API_URL: pathological });
+    const elapsedMs = Number(process.hrtime.bigint() - started) / 1e6;
+
+    expect(resolved).toBe(pathological);
+    expect(elapsedMs).toBeLessThan(250);
+  });
 });
 
 describe('browserCommand', () => {

@@ -14,11 +14,34 @@ export type FetchLike = (
 export const DEFAULT_API_URL = 'https://api.govplane.com';
 export const API_URL_ENV = 'GOVPLANE_API_URL';
 
+const SLASH = '/';
+
+/**
+ * Strips trailing slashes in one pass.
+ *
+ * The obvious `replace(/\/+$/, '')` backtracks quadratically: for each starting
+ * position the engine consumes the run of slashes, fails the end anchor and
+ * unwinds, so a value of many slashes followed by any other character costs
+ * O(n²). Measured on the shipped regex, 40 000 slashes took over half a second.
+ *
+ * The value is an environment variable, which is not attacker-controlled in the
+ * usual sense — but this runs inside `govplane` in CI, where the environment is
+ * assembled from configuration that people do edit, and a scan is right to
+ * object to a pathological regex on any input it cannot bound.
+ */
+const stripTrailingSlashes = (value: string): string => {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === SLASH) {
+    end -= 1;
+  }
+  return end === value.length ? value : value.slice(0, end);
+};
+
 /** Base URL for activation, overridable for staging and local development. */
 export const resolveApiUrl = (env: NodeJS.ProcessEnv = process.env): string => {
   const override = env[API_URL_ENV];
   const base = override !== undefined && override.trim() !== '' ? override : DEFAULT_API_URL;
-  return base.replace(/\/+$/, '');
+  return stripTrailingSlashes(base);
 };
 
 export interface PostJsonResult {
