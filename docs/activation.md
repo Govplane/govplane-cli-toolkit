@@ -1,8 +1,9 @@
 # Activation
 
-The Govplane CLI Toolkit is free, and asks for one thing: a verified email
-address. This document explains what activation actually does, what it stores,
-and why it does not turn the toolkit into something that depends on Govplane.
+The Govplane CLI Toolkit is free, and asks for one thing: that you accept the
+terms. An email address is optional — you can give one, or activate without.
+This document explains what activation actually does, what it stores, and why it
+does not turn the toolkit into something that depends on Govplane.
 
 The normative specification is
 [`cli_toolkit_activation_spec.md`](../../../specs/cli-toolkit/cli_toolkit_activation_spec.md).
@@ -13,11 +14,11 @@ The normative specification is
 govplane activate
       │
       ├─ CLI asks the service to open an activation request
-      │     sends: { client: "govplane-toolkit", clientVersion: "1.0.0" }
+      │     sends: { client: "govplane-toolkit", clientVersion: "1.1.1" }
       │     gets:  a short code and a URL
       │
       ├─ you confirm in the browser
-      │     email · verify it · accept terms · optional product news
+      │     accept terms · optionally: email · verify it · product news
       │
       ├─ CLI polls until you are done
       │
@@ -58,6 +59,30 @@ permission at use time — there is nothing to ask.
 }
 ```
 
+Activated without an email address, the same document simply has **no `subject`
+key**:
+
+```json
+{
+  "schemaVersion": 1,
+  "licenseId": "lic_01JQ8ZC4T7YB3W0P5R2K9M6XQD",
+  "plan": "toolkit-free",
+  "issuedAt": "2026-07-29T12:00:00.000Z",
+  "renewAfter": "2027-07-29T12:00:00.000Z",
+  "terms": { "version": "2026-08-15", "acceptedAt": "2026-07-29T11:59:58.000Z" },
+  "marketingConsent": false,
+  "signature": { "algorithm": "Ed25519", "keyId": "license-key-01", "value": "…" }
+}
+```
+
+The key is omitted rather than left empty. That distinction is not cosmetic: the
+signature covers the canonical bytes, so `"subject": {}` is a different document
+and would not verify. A licence with an empty subject is treated as malformed,
+not anonymous.
+
+Such a licence has no owning account, so it cannot be re-downloaded from the
+dashboard. Losing it costs one `govplane activate`.
+
 That design decision is what keeps the promise "own your runtime" true for the
 toolkit as well as the SDK:
 
@@ -65,7 +90,8 @@ toolkit as well as the SDK:
 - **No expiry.** An offline or long-lived build machine cannot be timed out.
 - **No machine binding.** One licence, all your machines.
 - **Tamper-evident.** Editing any field — the email, the plan, the consent flag —
-  invalidates the signature.
+  invalidates the signature. So does adding a `subject` to a licence issued
+  without one, or removing it from a licence issued with one.
 
 The trade-off is honest and worth stating: because verification is offline,
 licences cannot be revoked. For a free licence, that is an acceptable price for

@@ -30,8 +30,8 @@ npm install --global @govplane/cli @govplane/cli-toolkit
 govplane activate
 ```
 
-- Activation is **free** and needs only an email address.
-- The email is collected in your **browser**, never by the CLI.
+- Activation is **free**, and an email address is optional.
+- Any email you do give is collected in your **browser**, never by the CLI.
 - Marketing consent is **optional** and declining it changes nothing.
 - After activation the toolkit **never contacts Govplane again**.
 - The licence **does not expire** and is **not machine-bound**.

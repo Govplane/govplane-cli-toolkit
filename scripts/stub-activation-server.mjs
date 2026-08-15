@@ -70,7 +70,10 @@ const issueLicense = (email, marketingConsent) => {
   const body = {
     schemaVersion: 1,
     licenseId: `lic_stub_${randomCode(10)}`,
-    subject: { email },
+    // No email means no `subject` key at all — never an empty object. The signature
+    // covers the canonical bytes, so the two are different documents, and this stub
+    // exists to reproduce exactly what the real service emits.
+    ...(email ? { subject: { email } } : {}),
     plan: 'toolkit-free',
     issuedAt: issuedAt.toISOString(),
     renewAfter: renewAfter.toISOString(),
@@ -175,19 +178,19 @@ const activationPage = (prefilledCode, message) => `<!doctype html>
 <body>
   <p class="banner"><strong>Stub activation service.</strong> For local development only.</p>
   <h1>Activate the Govplane CLI Toolkit</h1>
-  <p>Activation is free and needs only an email address.</p>
+  <p>Activation is free and takes about 30 seconds. An email address is optional.</p>
   ${message ? `<p class="msg">${escapeHtml(message)}</p>` : ''}
   <form method="POST" action="/activate">
     <label>Code from your terminal
       <input type="text" name="userCode" value="${escapeHtml(sanitiseUserCode(prefilledCode))}" required>
     </label>
-    <label>Email address
-      <input type="email" name="email" required>
+    <label>Email address <span class="note">Optional. Leave it empty to activate without one.</span>
+      <input type="email" name="email">
     </label>
     <fieldset>
       <legend>Before you continue</legend>
       <label><input type="checkbox" name="terms" required> I accept the terms of service (version ${TERMS_VERSION}). <span class="note">Required.</span></label>
-      <label><input type="checkbox" name="marketing"> Send me occasional product news. <span class="note">Optional — activation works either way.</span></label>
+      <label><input type="checkbox" name="marketing"> Send me occasional product news. <span class="note">Optional, and only meaningful with an email address.</span></label>
     </fieldset>
     <button type="submit">Activate</button>
     <button type="submit" name="decline" value="1">Decline</button>
@@ -279,10 +282,16 @@ const server = createServer(async (request, response) => {
       return;
     }
 
+    // An empty field means "no address", not "use a default". Substituting one here
+    // would make the anonymous path impossible to exercise locally, which is the one
+    // thing this stub exists for.
+    const email = (form.get('email') ?? '').trim();
+
     found.entry.state = 'approved';
-    found.entry.email = form.get('email') ?? 'dev@example.com';
-    found.entry.marketingConsent = form.get('marketing') === 'on';
-    console.log(`  → activation approved for ${found.entry.email}`
+    found.entry.email = email === '' ? null : email;
+    // Consent needs an address to mean anything, so without one it is recorded as false.
+    found.entry.marketingConsent = email !== '' && form.get('marketing') === 'on';
+    console.log(`  → activation approved for ${found.entry.email ?? '(no email)'}`
       + ` (product news: ${found.entry.marketingConsent ? 'yes' : 'no'})`);
 
     sendHtml(response, 200, activationPage(

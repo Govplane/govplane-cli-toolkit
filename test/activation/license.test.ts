@@ -29,8 +29,46 @@ describe('verifyLicense', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.license.subject.email).toBe('dev@example.com');
+      expect(result.license.subject?.email).toBe('dev@example.com');
       expect(isFreePlan(result.license)).toBe(true);
+    }
+  });
+
+  // Giving an email address is optional, so the service issues licences with no subject
+  // at all. The signature covers the canonical bytes, so this only verifies if the
+  // reconstruction omits the key exactly as the signer did — which is the whole risk in
+  // making the field optional.
+  it('accepts a correctly signed licence with no subject', () => {
+    const license = sandbox.signer.sign(licenseBody({ anonymous: true }));
+    const result = verifyLicense(license, { env: sandbox.env });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.license.subject).toBeUndefined();
+      expect('subject' in result.license).toBe(false);
+      expect(isFreePlan(result.license)).toBe(true);
+    }
+  });
+
+  it('rejects an anonymous licence whose subject was added after signing', () => {
+    const license = sandbox.signer.sign(licenseBody({ anonymous: true }));
+    const tampered = { ...license, subject: { email: 'attacker@example.com' } };
+
+    const result = verifyLicense(tampered, { env: sandbox.env });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.problem).toBe('LICENSE_SIGNATURE_INVALID');
+    }
+  });
+
+  it('rejects a licence whose subject was stripped after signing', () => {
+    const license = sandbox.signer.sign(licenseBody());
+    const { subject, ...stripped } = license as unknown as Record<string, unknown>;
+
+    const result = verifyLicense(stripped, { env: sandbox.env });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.problem).toBe('LICENSE_SIGNATURE_INVALID');
     }
   });
 
@@ -60,7 +98,11 @@ describe('verifyLicense', () => {
     ['not an object', 'nope'],
     ['a wrong schema version', { ...licenseBody(), schemaVersion: 2 }],
     ['no licence id', { ...licenseBody(), licenseId: '' }],
-    ['no email', { ...licenseBody(), subject: {} }],
+    // An absent subject is valid (anonymous activation); a subject that is present but
+    // empty is not. It is a truncated document rather than a deliberate one, and the two
+    // must not be conflated.
+    ['an empty subject', { ...licenseBody(), subject: {} }],
+    ['a blank email', { ...licenseBody(), subject: { email: '   ' } }],
     ['no plan', { ...licenseBody(), plan: '' }],
     ['no issue date', { ...licenseBody(), issuedAt: '' }],
     ['no terms', { ...licenseBody(), terms: { version: '1' } }],
@@ -148,7 +190,7 @@ describe('loadLicense', () => {
     const result = loadLicense({ ...sandbox.env, GOVPLANE_LICENSE: JSON.stringify(inline) });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.license.subject.email).toBe('ci@example.com');
+      expect(result.license.subject?.email).toBe('ci@example.com');
       expect(result.source).toBe('environment');
     }
   });
@@ -223,7 +265,7 @@ describe('storeLicense and removeLicense', () => {
     const result = loadLicense(sandbox.env);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.license.subject.email).toBe('round@example.com');
+      expect(result.license.subject?.email).toBe('round@example.com');
     }
   });
 

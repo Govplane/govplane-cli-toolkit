@@ -1,7 +1,8 @@
 # Privacy
 
-The toolkit collects one item of personal data — an email address — and it is
-collected in your browser, not by the CLI.
+The toolkit collects **at most one** item of personal data — an email address —
+and it is collected in your browser, not by the CLI. Giving it is optional: you
+can activate without one, and then nothing personal is collected at all.
 
 This document states exactly what happens, because "free tool that asks for your
 email" deserves to be specific rather than reassuring.
@@ -15,7 +16,7 @@ Starting activation:
 
 ```json
 POST /v1/activation/device/start
-{ "client": "govplane-toolkit", "clientVersion": "1.0.0" }
+{ "client": "govplane-toolkit", "clientVersion": "1.1.1" }
 ```
 
 Polling for your confirmation:
@@ -51,25 +52,35 @@ property is tested.
 
 ## Your email address
 
-Collected on the activation page, and stored in the licence on your machine:
+Optional. If you choose **Continue without an email address** on the activation
+page, none is collected, the licence carries no subject, and there is nothing in
+this section to apply.
+
+If you do give one, it is collected on the activation page and stored in the
+licence on your machine:
 
 ```text
 ~/.govplane/license.json      mode 0600 (owner read/write only)
 ```
 
-`govplane license` shows it. `govplane license remove` deletes the local copy.
+`govplane license` shows it, masked as `dev@*******`. `govplane license remove`
+deletes the local copy.
 
 Because the licence is signed, the email address inside it cannot be changed
 without invalidating it — which also means the licence is a small piece of
 personal data. Treat it accordingly: use a secret store in CI, and prefer
-`GOVPLANE_LICENSE_FILE` over committing it anywhere.
+`GOVPLANE_LICENSE_FILE` over committing it anywhere. A licence activated without
+an email carries no personal data, so it needs none of that care.
 
 ## Consent
 
 - **Terms of service** — required to activate, recorded with its version and the
-  moment you accepted it.
+  moment you accepted it. This is the only mandatory step.
+- **Email address** — optional. Activating without one is a first-class path, not
+  a degraded mode.
 - **Product news** — optional, unticked by default, and **declining it activates
-  you exactly the same**.
+  you exactly the same**. It is not offered at all when you activate without an
+  email address, since there would be nowhere to send anything.
 
 The second point is not a courtesy. Consent that is a condition of getting the
 service is not valid consent, so marketing consent is never bundled with

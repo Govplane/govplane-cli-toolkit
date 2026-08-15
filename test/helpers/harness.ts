@@ -57,6 +57,8 @@ export const createSigner = (): Signer => {
 
 export interface LicenseOverrides {
   email?: string;
+  /** Build an anonymous licence: no `subject` key at all, as the service issues it. */
+  anonymous?: boolean;
   plan?: string;
   issuedAt?: string;
   renewAfter?: string;
@@ -69,7 +71,9 @@ export const licenseBody = (
 ): Omit<License, 'signature'> => ({
   schemaVersion: 1,
   licenseId: overrides.licenseId ?? 'lic_test_0001',
-  subject: { email: overrides.email ?? 'dev@example.com' },
+  ...(overrides.anonymous === true
+    ? {}
+    : { subject: { email: overrides.email ?? 'dev@example.com' } }),
   plan: overrides.plan ?? 'toolkit-free',
   issuedAt: overrides.issuedAt ?? NOW,
   ...(overrides.renewAfter === undefined ? {} : { renewAfter: overrides.renewAfter }),

@@ -39,7 +39,8 @@ const toJson = (status: ActivationStatus, path: string): Record<string, unknown>
   return {
     state: status.state,
     licenseId: license.licenseId,
-    email: license.subject.email,
+    // Omitted, not null, when the licence was issued without an email address.
+    ...(license.subject === undefined ? {} : { email: license.subject.email }),
     plan: license.plan,
     issuedAt: license.issuedAt,
     ...(license.renewAfter === undefined ? {} : { renewAfter: license.renewAfter }),
@@ -75,7 +76,7 @@ const printStatus = (reporter: Reporter, status: ActivationStatus, path: string)
     reporter.line('Expected licence file:');
     reporter.line(`  ${path}`);
     reporter.line();
-    reporter.line('Activation is free and needs only an email address:');
+    reporter.line('Activation is free, and an email address is optional:');
     reporter.line('  govplane activate');
     return;
   }
@@ -84,9 +85,13 @@ const printStatus = (reporter: Reporter, status: ActivationStatus, path: string)
   reporter.line('Status:');
   reporter.line('  Activated');
   reporter.line();
-  reporter.line('Email:');
-  reporter.line(`  ${maskEmail(license.subject.email)}`);
-  reporter.line();
+  // No email means no block at all, rather than a placeholder. There is nothing to
+  // report, and "Email: none" reads like something went missing.
+  if (license.subject !== undefined) {
+    reporter.line('Email:');
+    reporter.line(`  ${maskEmail(license.subject.email)}`);
+    reporter.line();
+  }
   reporter.line('Licence ID:');
   reporter.line(`  ${license.licenseId}`);
   reporter.line();

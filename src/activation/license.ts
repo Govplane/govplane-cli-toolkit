@@ -41,9 +41,20 @@ const readLicenseShape = (value: unknown): { license: License } | { reason: stri
     return { reason: 'licenseId is required.' };
   }
 
+  // An email address is optional, so a licence may carry no subject at all. What is not
+  // allowed is a subject that is present but says nothing: `{}` or a blank address are
+  // malformed rather than anonymous, and accepting them would let a truncated licence
+  // pass as a deliberate one.
+  //
+  // Built here rather than at the return so the narrowing survives — and so the shape
+  // handed to the canonicaliser is decided in exactly one place.
   const {subject} = value;
-  if (!isRecord(subject) || !isNonEmptyString(subject.email)) {
-    return { reason: 'subject.email is required.' };
+  let subjectField: { subject?: { email: string } } = {};
+  if (subject !== undefined) {
+    if (!isRecord(subject) || !isNonEmptyString(subject.email)) {
+      return { reason: 'subject, when present, must carry a non-empty email.' };
+    }
+    subjectField = { subject: { email: subject.email } };
   }
 
   if (!isNonEmptyString(value.plan)) {
@@ -79,7 +90,10 @@ const readLicenseShape = (value: unknown): { license: License } | { reason: stri
     license: {
       schemaVersion: LICENSE_SCHEMA_VERSION,
       licenseId: value.licenseId,
-      subject: { email: subject.email },
+      // Spread, exactly like `renewAfter` below: an absent subject must produce an absent
+      // key, because this reconstruction — not the received document — is what gets
+      // canonicalised and checked against the signature.
+      ...subjectField,
       plan: value.plan,
       issuedAt: value.issuedAt,
       ...(isNonEmptyString(value.renewAfter) ? { renewAfter: value.renewAfter } : {}),

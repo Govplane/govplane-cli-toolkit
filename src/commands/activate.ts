@@ -18,6 +18,16 @@ const consentLabel = (license: License): string => (
   license.marketingConsent ? 'subscribed' : 'not subscribed'
 );
 
+/**
+ * The `email` key, present only when the licence carries one.
+ *
+ * Omitted rather than emitted as `null`, so a script can test for the key instead of
+ * having to distinguish two kinds of absence.
+ */
+const emailField = (license: License): { email?: string } => (
+  license.subject === undefined ? {} : { email: license.subject.email }
+);
+
 const reportActivated = (
   reporter: Reporter,
   license: License,
@@ -27,7 +37,7 @@ const reportActivated = (
     reporter.json({
       success: true,
       licenseId: license.licenseId,
-      email: license.subject.email,
+      ...emailField(license),
       plan: license.plan,
       issuedAt: license.issuedAt,
       terms: license.terms,
@@ -38,7 +48,9 @@ const reportActivated = (
   }
 
   reporter.line();
-  reporter.line(`${reporter.success('✓')} Activated for ${maskEmail(license.subject.email)}`);
+  reporter.line(license.subject === undefined
+    ? `${reporter.success('✓')} Activated`
+    : `${reporter.success('✓')} Activated for ${maskEmail(license.subject.email)}`);
   reporter.line();
   if (path !== null) {
     reporter.line(`  Licence:       ${path}`);
@@ -91,14 +103,16 @@ const reportAlreadyActivated = (
       success: true,
       alreadyActivated: true,
       licenseId: license.licenseId,
-      email: license.subject.email,
+      ...emailField(license),
     });
     return ExitCode.Success;
   }
 
-  reporter.line(`This machine is already activated for ${maskEmail(license.subject.email)}.`);
+  reporter.line(license.subject === undefined
+    ? 'This machine is already activated.'
+    : `This machine is already activated for ${maskEmail(license.subject.email)}.`);
   reporter.line();
-  reporter.line('Re-run with --force to activate against a different account.');
+  reporter.line('Re-run with --force to activate again.');
   return ExitCode.Success;
 };
 
@@ -107,7 +121,7 @@ const printPrompt = (
   start: DeviceStart,
   browserOpened: boolean,
 ): void => {
-  reporter.line('Activation is free and needs only an email address.');
+  reporter.line('Activation is free and takes about 30 seconds. An email address is optional.');
   reporter.line();
   reporter.line(browserOpened
     ? 'Your browser should open. If it does not, open this page and enter the code:'

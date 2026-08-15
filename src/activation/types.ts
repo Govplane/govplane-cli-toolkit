@@ -18,7 +18,14 @@ export interface LicenseSignature {
 export interface License {
   schemaVersion: number;
   licenseId: string;
-  subject: { email: string };
+  /**
+   * Absent when the licence was issued without an email address.
+   *
+   * Giving one is optional, so a licence may have no subject at all. When there is none
+   * the key is missing entirely rather than empty — which matters, because the signature
+   * covers the canonical bytes and `{"subject":{}}` is a different document.
+   */
+  subject?: { email: string };
   plan: string;
   issuedAt: string;
   /** Advisory only — a passed `renewAfter` nudges, it never blocks. */

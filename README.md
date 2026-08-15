@@ -8,11 +8,12 @@ machine.
 
 ```bash
 npm install --global @govplane/cli @govplane/cli-toolkit
-govplane activate      # free, one-time, needs only an email address
+govplane activate      # free, one-time, no email required
 ```
 
-The kit is **free**. Activation asks for an email address, nothing else — and
-once activated, **the toolkit never contacts Govplane again**.
+The kit is **free**. Activation asks you to accept the terms and nothing else —
+an email address is optional — and once activated, **the toolkit never contacts
+Govplane again**.
 
 ---
 
@@ -73,7 +74,7 @@ govplane activate
 ```
 
 ```text
-Activation is free and needs only an email address.
+Activation is free and takes about 30 seconds. An email address is optional.
 
 Open this page and enter the code:
 
@@ -92,10 +93,15 @@ Waiting for confirmation... (expires in 10 minutes)
 This machine will not contact Govplane again.
 ```
 
-You enter the code in your browser, where you give an email address, verify it,
-accept the terms, and choose whether you want product news. **The marketing
-choice is optional and unticked by default; declining it activates you exactly
-the same.**
+You enter the code in your browser and accept the terms. You may also give an
+email address — verifying it and choosing whether you want product news — or
+choose **Continue without an email address**, which activates you immediately.
+
+Both produce a fully valid licence. Without an email the confirmation is simply
+`✓ Activated`, the licence carries no subject, and **no personal data is
+collected at all**. The marketing choice is optional and unticked by default;
+declining it activates you exactly the same, and it is not offered when there is
+no address to send to.
 
 The CLI itself never asks for your email address, so nothing personal ends up in
 your shell history or your CI logs.
@@ -132,8 +138,9 @@ export GOVPLANE_LICENSE_FILE=/etc/govplane/license.json
 
 The licence is not machine-bound, so one licence covers every machine you own.
 It is not a secret in the credential sense — it cannot be used to access
-anything — but it does contain your email address, so treat it as personal data
-and use your CI secret store.
+anything. If you gave an email address it contains one, so treat it as personal
+data and use your CI secret store. A licence activated without an email contains
+no personal data at all, which makes it the simpler thing to put in a pipeline.
 
 ## Air-gapped machines
 
@@ -186,7 +193,7 @@ is running.
 **Sent:** the client name and version.
 
 ```json
-{ "client": "govplane-toolkit", "clientVersion": "1.0.0" }
+{ "client": "govplane-toolkit", "clientVersion": "1.1.1" }
 ```
 
 **Not sent, ever:** your hostname, username, file paths, project contents,
@@ -195,8 +202,9 @@ no heartbeat, no licence check, and no fingerprinting — by design, and the
 [activation spec](../../specs/cli-toolkit/cli_toolkit_activation_spec.md)
 forbids adding any.
 
-Your email address is collected in the browser, by the activation page, and is
-stored in the licence file on your machine at mode `0600`. `govplane license`
+If you gave an email address it is collected in the browser, by the activation
+page, and stored in the licence file on your machine at mode `0600`. If you did
+not, the licence contains no personal data and there is nothing to protect. `govplane license`
 links to the dashboard for withdrawing consent, exporting your data or deleting
 your account. `govplane license remove` deletes the local copy.
 

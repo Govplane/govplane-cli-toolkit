@@ -100,7 +100,7 @@ describe('requireActivation', () => {
 
     expect(result.code).toBe(ExitCode.Success);
     expect(result.stdout).toContain('Activation required in 5 days.');
-    expect(result.stdout).toContain('Activation is free and needs only an email address.');
+    expect(result.stdout).toContain('An email address is optional.');
   });
 
   it('stops the command once the grace period has run out', () => {

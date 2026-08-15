@@ -68,6 +68,21 @@ describe('govplane activate', () => {
     expect(existsSync(join(sandbox.home, 'license.json'))).toBe(true);
   });
 
+  it('completes activation when the licence carries no email', async () => {
+    const license = sandbox.signer.sign(licenseBody({ anonymous: true }));
+    stubService([deviceStart, { status: 'activated', license }]);
+
+    const result = await runToolkit(['activate', '--no-browser'], sandbox);
+
+    expect(result.code).toBe(ExitCode.Success);
+    // No subject to report, so the line stops at the outcome.
+    expect(result.stdout).toContain('✓ Activated');
+    expect(result.stdout).not.toContain('Activated for');
+    expect(result.stdout).not.toContain('*******');
+    expect(result.stdout).toContain('This machine will not contact Govplane again.');
+    expect(existsSync(join(sandbox.home, 'license.json'))).toBe(true);
+  });
+
   it('stores the licence readable only by its owner', async () => {
     const license = sandbox.signer.sign(licenseBody());
     stubService([deviceStart, { status: 'activated', license }]);

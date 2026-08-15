@@ -5,6 +5,42 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-08-15
+
+### Added
+
+- **Activation no longer requires an email address.** Activation itself is still
+  required, and the terms of service must still be accepted — but giving an email
+  is now the user's choice. Declining it produces a licence that is valid in every
+  way, issued immediately with no verification step.
+
+  A licence issued this way carries **no `subject` field at all**. The key is
+  omitted rather than emitted empty, because the signature covers the canonical
+  bytes and `{"subject":{}}` is a different document. `verifyLicense` accepts an
+  absent subject and still rejects one that is present but empty or blank.
+
+  `govplane activate` prints `✓ Activated` with no address, `govplane license`
+  omits the `Email:` block, and both commands omit the `email` key from
+  `--format json` output rather than emitting `null`.
+
+### Changed
+
+- Messages no longer say activation "needs only an email address"; they say it is
+  free, takes about 30 seconds, and that an email is optional.
+- The bundled documentation, the activation specification and the published terms
+  were updated to match: an email address is described as optional throughout,
+  and the anonymous licence shape is documented alongside the standard one.
+
+### Compatibility
+
+- Toolkit **1.0.x rejects a licence without `subject.email`**, and does so
+  silently — it treats the licence as absent and falls back to grace-period
+  messaging. The activation service therefore refuses to issue an email-less
+  licence to a client older than 1.1.0, asking the user to upgrade instead. No
+  action is needed beyond installing this version.
+- Licences that carry an email are unchanged, and every licence issued by earlier
+  versions continues to verify.
+
 ## [1.0.1] - 2026-08-08
 
 ### Security
@@ -230,5 +266,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Every CLI Toolkit command is now implemented; none falls back to the CLI's
   built-in placeholder.
 
-[Unreleased]: https://github.com/govplane/govplane-toolkit/compare/v1.0.1...HEAD
-[1.0.1]: https://github.com/govplane/govplane-toolkit/compare/v1.0.0...v1.0.1
+[Unreleased]: https://github.com/Govplane/govplane-cli-toolkit/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/Govplane/govplane-cli-toolkit/compare/v1.0.1...v1.1.1
+[1.0.1]: https://github.com/Govplane/govplane-cli-toolkit/compare/v1.0.0...v1.0.1

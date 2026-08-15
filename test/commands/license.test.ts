@@ -32,6 +32,28 @@ describe('govplane license', () => {
     expect(result.stdout).toContain('https://govplane.com/account');
   });
 
+  it('omits the email block entirely for an anonymous licence', async () => {
+    sandbox.installLicense({ anonymous: true });
+    const result = await runToolkit(['license'], sandbox);
+
+    expect(result.code).toBe(ExitCode.Success);
+    expect(result.stdout).toContain('Activated');
+    // No placeholder, no empty label: there is nothing to report, so nothing is shown.
+    expect(result.stdout).not.toContain('Email:');
+    expect(result.stdout).not.toContain('*******');
+    expect(result.stdout).toContain('Valid (Ed25519, test-license-key)');
+  });
+
+  it('omits the email key from JSON for an anonymous licence', async () => {
+    sandbox.installLicense({ anonymous: true });
+    const result = await runToolkit(['license', '--format', 'json'], sandbox);
+
+    const payload = JSON.parse(result.stdout) as Record<string, unknown>;
+    expect(payload.state).toBe('activated');
+    // Absent rather than null, so a script can test for the key.
+    expect('email' in payload).toBe(false);
+  });
+
   it('never prints the signature value', async () => {
     const license = sandbox.installLicense();
     const result = await runToolkit(['license'], sandbox);

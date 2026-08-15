@@ -15,7 +15,7 @@ Store the contents in your CI secret store. The licence is not machine-bound, so
 one licence covers every runner.
 
 It is not a credential — it cannot be used to access anything — but it does
-contain an email address, so treat it as personal data rather than as public
+contain an email address if you gave one, so treat it as personal data rather than as public
 configuration.
 
 ## Supplying it

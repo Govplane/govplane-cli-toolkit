@@ -1,7 +1,7 @@
 # `govplane activate`
 
 Activates the Govplane CLI Toolkit on this machine. Activation is free, needs
-only an email address, and takes about 30 seconds.
+about 30 seconds, and an email address only if you want to give one.
 
 ```bash
 govplane activate [options]
@@ -14,7 +14,7 @@ govplane activate
 ```
 
 ```text
-Activation is free and needs only an email address.
+Activation is free and takes about 30 seconds. An email address is optional.
 
 Your browser should open. If it does not, open this page and enter the code:
 
@@ -24,7 +24,7 @@ Your browser should open. If it does not, open this page and enter the code:
 
 Waiting for confirmation... (expires in 10 minutes)
 
-✓ Activated for dev@example.com
+✓ Activated for dev@*******
 
   Licence:       /Users/example/.govplane/license.json
   Terms:         2026-07-01
@@ -33,7 +33,7 @@ Waiting for confirmation... (expires in 10 minutes)
 This machine will not contact Govplane again.
 ```
 
-In the browser you supply an email address, verify it, accept the terms, and
+In the browser you accept the terms, and may supply an email address, verify it, and
 choose whether to receive product news. That last choice is optional and off by
 default — declining it produces exactly the same licence.
 
@@ -66,10 +66,13 @@ Running `activate` on an already-activated machine does nothing and makes no
 network request:
 
 ```text
-This machine is already activated for dev@example.com.
+This machine is already activated for dev@*******.
 
-Re-run with --force to activate against a different account.
+Re-run with --force to activate again.
 ```
+
+Activated without an email address, both lines omit the subject — `✓ Activated`
+and `This machine is already activated.`
 
 ```bash
 govplane activate --force
@@ -80,7 +83,7 @@ govplane activate --force
 Exactly this, and only while the command is running:
 
 ```json
-{ "client": "govplane-toolkit", "clientVersion": "1.0.0" }
+{ "client": "govplane-toolkit", "clientVersion": "1.1.1" }
 ```
 
 No hostname, no username, no paths, no project or policy contents, no machine
@@ -115,6 +118,21 @@ govplane activate --format json
   "plan": "toolkit-free",
   "issuedAt": "2026-07-29T12:00:00.000Z",
   "terms": { "version": "2026-07-01", "acceptedAt": "2026-07-29T11:59:58.000Z" },
+  "marketingConsent": false,
+  "licensePath": "/Users/example/.govplane/license.json"
+}
+```
+
+Activated without an email address, the `email` key is **absent** rather than
+`null`, so a script can test for the key:
+
+```json
+{
+  "success": true,
+  "licenseId": "lic_01JQ8ZC4T7YB3W0P5R2K9M6XQD",
+  "plan": "toolkit-free",
+  "issuedAt": "2026-07-29T12:00:00.000Z",
+  "terms": { "version": "2026-08-15", "acceptedAt": "2026-07-29T11:59:58.000Z" },
   "marketingConsent": false,
   "licensePath": "/Users/example/.govplane/license.json"
 }

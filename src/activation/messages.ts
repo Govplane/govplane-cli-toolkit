@@ -16,15 +16,16 @@ const plural = (count: number, singular: string): string => (
 
 /** The single line shown early in the grace period. */
 export const graceReminder = (status: ActivationStatus): string => (
-  `Activation required in ${plural(status.daysRemaining, 'day')} — free, `
-  + 'needs only an email: govplane activate'
+  `Activation required in ${plural(status.daysRemaining, 'day')} — `
+  + 'free, no email needed: govplane activate'
 );
 
 /** The short block shown as the grace period runs out. */
 export const graceNotice = (status: ActivationStatus): string[] => [
   `Activation required in ${plural(status.daysRemaining, 'day')}.`,
   '',
-  '  Activation is free and needs only an email address.',
+  '  Activation is free and takes about 30 seconds.',
+  '  An email address is optional.',
   '  Run: govplane activate',
 ];
 
@@ -36,7 +37,7 @@ export const graceNotice = (status: ActivationStatus): string[] => [
  */
 export const activationRequired = (command: string): string[] => [
   '',
-  'Activation is free and needs only an email address, and takes about 30 seconds.',
+  'Activation is free and takes about 30 seconds. An email address is optional.',
   '',
   '  Run:  govplane activate',
   '',

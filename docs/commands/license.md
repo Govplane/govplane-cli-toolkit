@@ -20,7 +20,7 @@ Status:
   Activated
 
 Email:
-  dev@example.com
+  dev@*******
 
 Licence ID:
   lic_01JQ8ZC4T7YB3W0P5R2K9M6XQD
@@ -56,7 +56,7 @@ Status:
 Expected licence file:
   /Users/example/.govplane/license.json
 
-Activation is free and needs only an email address:
+Activation is free, and an email address is optional:
   govplane activate
 ```
 
@@ -105,7 +105,7 @@ govplane license remove
 ```
 
 Deletes the local licence file. Use it to move a machine to a different account,
-or to clear your email address off a shared machine.
+or to clear your licence — and any email address in it — off a shared machine.
 
 ```text
 Licence removed: /Users/example/.govplane/license.json
@@ -146,6 +146,9 @@ Activated:
   "source": "file"
 }
 ```
+
+The `email` key is **absent** — not `null` — when the licence was issued without
+one. The text output omits the whole `Email:` block in that case.
 
 Not activated:
 

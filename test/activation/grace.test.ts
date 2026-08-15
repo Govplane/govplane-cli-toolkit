@@ -67,7 +67,7 @@ describe('resolveActivation', () => {
     const status = resolveActivation({ now: fixedClock(NOW), env: sandbox.env });
 
     expect(status.state).toBe('activated');
-    expect(status.license?.subject.email).toBe('dev@example.com');
+    expect(status.license?.subject?.email).toBe('dev@example.com');
     expect(status.renewalDue).toBe(false);
   });
 
