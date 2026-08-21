@@ -122,9 +122,10 @@ govplane build --org-id org_1 --project-id proj_1
 ```
 
 Without them the build succeeds with a warning, because a bundle with no scope
-cannot be used in Isolated Mode, which checks it. Note that `govplane validate`
-uses the cloud-compatible profile and will report the missing scope as an
-**error** — set both when the bundle is destined for a real deployment.
+cannot be used in Isolated Mode, which checks it. `govplane validate` reports
+the same thing the same way — a warning, not an error — and
+`govplane validate --strict` turns it back into a failure. Set both when the
+bundle is destined for a real deployment.
 
 `env` defaults to the draft's environment, then to `prod`.
 
