@@ -41,6 +41,9 @@ export interface DefaultsInput {
   throttleWindowSeconds?: string | undefined;
   throttleKey?: string | undefined;
   customEffect?: string | undefined;
+  approvalReason?: string | undefined;
+  approvers?: string | undefined;
+  approvalExpiresInSeconds?: string | undefined;
 }
 
 const readNumber = (value: string | undefined, label: string): number => {
@@ -106,6 +109,31 @@ export const buildDefaults = (input: DefaultsInput): DraftPolicy['defaults'] => 
       );
     }
     return { effect: 'custom', customEffect: input.customEffect };
+  }
+
+  // The descriptor is optional, so a bare `requires_approval` is complete;
+  // fields are written only when given, and `approvers` is comma-separated.
+  if (input.effect === 'requires_approval') {
+    const approvers = isNonEmptyString(input.approvers)
+      ? input.approvers.split(',').map((entry) => entry.trim()).filter(isNonEmptyString)
+      : [];
+    const expires = input.approvalExpiresInSeconds === undefined
+      ? undefined
+      : readNumber(input.approvalExpiresInSeconds, '--approval-expires-in-seconds');
+    if (expires !== undefined && expires <= 0) {
+      throw invalid(
+        '--approval-expires-in-seconds must be greater than zero.',
+        'INVALID_APPROVAL_DEFAULT',
+      );
+    }
+    const approval = {
+      ...(isNonEmptyString(input.approvalReason) ? { reason: input.approvalReason } : {}),
+      ...(approvers.length > 0 ? { approvers } : {}),
+      ...(expires === undefined ? {} : { expiresInSeconds: expires }),
+    };
+    return Object.keys(approval).length === 0
+      ? { effect: 'requires_approval' }
+      : { effect: 'requires_approval', approval };
   }
 
   return { effect: input.effect };

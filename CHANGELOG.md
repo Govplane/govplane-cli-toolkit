@@ -5,6 +5,33 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-26
+
+Requires `@govplane/cli` 1.2.0 and `@govplane/runtime-sdk` 2.3.0.
+
+### Security
+
+- **Node.js 22.23.4, 24.22.1 or 26.12.1 is now the minimum**, matching
+  `@govplane/cli` 1.2.0 and `@govplane/runtime-sdk` 2.3.0. These are the
+  21 October 2026 security releases, which fix CVE-2026-111497, a remote code
+  execution flaw in Node.js's Brotli decompression. `bin/govplane-toolkit.js`
+  now checks the full release, not just the major. It exits with code 4 on
+  Node.js 20, 23, 25 or older, or on an unpatched 22, 24 or 26. `engines` is
+  `>=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1`. `docs/automation.md` adds
+  `check-latest: true` to its GitHub Actions example, so a runner's cached,
+  older patch release cannot trip the check.
+
+### Added
+
+- **The `requires_approval` effect** across the toolkit. `policies add-policy`
+  accepts `--defaults-effect requires_approval` with optional
+  `--approval-reason`, `--approvers <a,b>` and `--approval-expires-in-seconds`;
+  `build` checks that a default's `approval`, when present, is an object
+  (`INVALID_APPROVAL_DEFAULT`); and `simulate` prints an `Approval:` block —
+  reason, approvers, expiry — when a scenario resolves to the effect. The
+  precedence `simulate` reports comes from the runtime it embeds:
+  `kill_switch > deny > requires_approval > throttle > allow > custom`.
+
 ## [1.1.1] - 2026-08-15
 
 ### Added

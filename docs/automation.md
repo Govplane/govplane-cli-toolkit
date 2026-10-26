@@ -48,6 +48,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          # Without this a runner can use a cached Node.js older than 22.23.4,
+          # and the CLI refuses to start on it (CVE-2026-111497).
+          check-latest: true
 
       - run: npm install --global @govplane/cli @govplane/cli-toolkit
 

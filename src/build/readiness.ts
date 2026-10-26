@@ -75,6 +75,16 @@ const checkDefaults = (defaults: unknown, path: string): ValidationIssue[] => {
     )];
   }
 
+  if (effect === 'requires_approval'
+    && defaults.approval !== undefined
+    && !isRecord(defaults.approval)) {
+    return [issue(
+      'INVALID_APPROVAL_DEFAULT',
+      `${path}.defaults.approval`,
+      'defaults.approval must be an object when present.',
+    )];
+  }
+
   return [];
 };
 

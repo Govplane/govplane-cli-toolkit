@@ -15,7 +15,7 @@ npm install
 npm test
 ```
 
-Requirements: Node.js 20 or later.
+Requirements: Node.js 22.23.4+, 24.22.1+ or 26.12.1+ (see the README).
 
 > While `@govplane/cli` is unpublished, `package.json` resolves it from the
 > sibling working copy (`file:../../CLI/govplane-cli`). Build the CLI once

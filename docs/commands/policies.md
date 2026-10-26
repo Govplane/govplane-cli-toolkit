@@ -66,7 +66,7 @@ govplane policies add-policy --policy-key login-protection --defaults-effect all
 | Option | Purpose |
 | ------ | ------- |
 | `--policy-key` | Required. Unique within the draft. |
-| `--defaults-effect` | Required. `allow`, `deny`, `kill_switch`, `throttle` or `custom`. |
+| `--defaults-effect` | Required. `allow`, `deny`, `kill_switch`, `requires_approval`, `throttle` or `custom`. |
 | `--active-version` | Defaults to `1`. |
 | `--friendly-name`, `--description` | Optional metadata. |
 
@@ -84,6 +84,16 @@ govplane policies add-policy --policy-key api-throttle \
 
 govplane policies add-policy --policy-key quarantine \
   --defaults-effect custom --custom-effect quarantine
+```
+
+`requires_approval` gates an action on a human and needs no payload; the
+descriptor is optional and every field of it is too:
+
+```bash
+govplane policies add-policy --policy-key exports \
+  --defaults-effect requires_approval \
+  --approval-reason "bulk export" --approvers security,privacy \
+  --approval-expires-in-seconds 900
 ```
 
 Or supply the whole policy as JSON:
@@ -236,7 +246,7 @@ an earlier version to be overwritten.
 ```text
 --draft <path>                    Draft file to use
 --policy-key <key>                Policy to act on
---defaults-effect <effect>        allow, deny, kill_switch, throttle or custom
+--defaults-effect <effect>        allow, deny, kill_switch, requires_approval, throttle or custom
 --active-version <number>         Active version of the policy
 --friendly-name <name>            Human-readable policy name
 --description <text>              Policy description
@@ -246,6 +256,9 @@ an earlier version to be overwritten.
 --throttle-window-seconds <n>     Throttle window, in seconds
 --throttle-key <key>              Context key a throttle counts against
 --custom-effect <value>           Value for a custom default effect
+--approval-reason <text>          Reason recorded with a requires_approval default
+--approvers <a,b>                 Comma-separated approvers for a requires_approval default
+--approval-expires-in-seconds <n> How long a requires_approval request stays open
 --policy-file <path>              Policy payload as a JSON file
 --policy-json <json>              Policy payload as inline JSON
 --rule-id <id>                    Rule to act on
@@ -301,7 +314,7 @@ Every subcommand supports `--format json`. Mutations report what changed:
     {
       "code": "INVALID_DEFAULT_EFFECT",
       "path": "$.policies[0].defaults.effect",
-      "message": "defaults.effect must be one of: allow, deny, kill_switch, throttle, custom."
+      "message": "defaults.effect must be one of: allow, deny, kill_switch, requires_approval, throttle, custom."
     }
   ],
   "warnings": [],

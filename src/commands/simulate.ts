@@ -340,6 +340,23 @@ const printDecision = (
     reporter.line('Custom effect:');
     reporter.line(`  value: ${String(decision.value)}`);
   }
+
+  if (decision.decision === 'requires_approval') {
+    const { approval } = decision as { approval?: Record<string, unknown> };
+    reporter.line();
+    reporter.line('Approval:');
+    if (approval === undefined) {
+      reporter.line('  (no descriptor on the effect)');
+    } else {
+      if (approval.reason !== undefined) reporter.line(`  reason: ${String(approval.reason)}`);
+      if (Array.isArray(approval.approvers)) {
+        reporter.line(`  approvers: ${approval.approvers.map(String).join(', ')}`);
+      }
+      if (approval.expiresInSeconds !== undefined) {
+        reporter.line(`  expiresInSeconds: ${String(approval.expiresInSeconds)}`);
+      }
+    }
+  }
 };
 
 const printTrace = (reporter: Reporter, trace: Record<string, unknown>): void => {

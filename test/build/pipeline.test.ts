@@ -161,6 +161,9 @@ describe('checkBuildReadiness', () => {
     expect(build({ effect: 'throttle', throttle: { limit: 1 } }))
       .toContain('INVALID_THROTTLE_DEFAULT');
     expect(build({ effect: 'custom' })).toContain('INVALID_CUSTOM_DEFAULT');
+    expect(build({ effect: 'requires_approval', approval: 'ask' }))
+      .toContain('INVALID_APPROVAL_DEFAULT');
+    expect(build({ effect: 'requires_approval' })).not.toContain('INVALID_APPROVAL_DEFAULT');
     expect(build({ effect: 'nope' })).toContain('INVALID_DEFAULT_EFFECT');
   });
 

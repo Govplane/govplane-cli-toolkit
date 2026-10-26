@@ -136,6 +136,9 @@ const readDefaults = (context: CommandContext): DraftPolicy['defaults'] | undefi
     throttleWindowSeconds: readString(context.options, 'throttle-window-seconds'),
     throttleKey: readString(context.options, 'throttle-key'),
     customEffect: readString(context.options, 'custom-effect'),
+    approvalReason: readString(context.options, 'approval-reason'),
+    approvers: readString(context.options, 'approvers'),
+    approvalExpiresInSeconds: readString(context.options, 'approval-expires-in-seconds'),
   });
 };
 
@@ -578,7 +581,7 @@ export const policiesCommand: CommandDefinition = {
       name: 'defaults-effect',
       type: 'string',
       placeholder: '<effect>',
-      choices: ['allow', 'deny', 'kill_switch', 'throttle', 'custom'],
+      choices: ['allow', 'deny', 'kill_switch', 'requires_approval', 'throttle', 'custom'],
       description: 'Default effect for the policy',
     },
     {
@@ -634,6 +637,24 @@ export const policiesCommand: CommandDefinition = {
       type: 'string',
       placeholder: '<value>',
       description: 'Value for a custom default effect',
+    },
+    {
+      name: 'approval-reason',
+      type: 'string',
+      placeholder: '<text>',
+      description: 'Reason recorded with a requires_approval default',
+    },
+    {
+      name: 'approvers',
+      type: 'string',
+      placeholder: '<a,b>',
+      description: 'Comma-separated approvers for a requires_approval default',
+    },
+    {
+      name: 'approval-expires-in-seconds',
+      type: 'string',
+      placeholder: '<number>',
+      description: 'How long a requires_approval request stays open',
     },
     {
       name: 'policy-file',

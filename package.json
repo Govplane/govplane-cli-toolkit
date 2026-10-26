@@ -1,6 +1,6 @@
 {
   "name": "@govplane/cli-toolkit",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Govplane CLI Toolkit — the free advanced toolkit for building, signing and simulating Govplane policy bundles locally.",
   "keywords": [
     "govplane",
@@ -44,7 +44,7 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=22.23.4 <23 || >=24.22.1 <25 || >=26.12.1"
   },
   "scripts": {
     "build": "tsc --project tsconfig.build.json",
@@ -61,13 +61,13 @@
     "dependencies": "@govplane/cli is resolved from the sibling working copy while both packages are pre-publication."
   },
   "dependencies": {
-    "@govplane/cli": "^1.0.1",
-    "@govplane/runtime-sdk": "^2.0.0"
+    "@govplane/cli": "^1.2.0",
+    "@govplane/runtime-sdk": "^2.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/jest": "^29.5.14",
-    "@types/node": "^20.17.6",
+    "@types/node": "^22.19.0",
     "eslint": "^9.39.1",
     "eslint-config-airbnb-extended": "^3.1.1",
     "eslint-plugin-import-x": "^4.16.1",

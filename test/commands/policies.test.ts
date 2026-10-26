@@ -158,6 +158,43 @@ describe('govplane policies', () => {
       });
     });
 
+    it('builds a requires_approval default, bare or described', async () => {
+      await runToolkit([
+        'policies', 'add-policy',
+        '--policy-key', 'gate',
+        '--defaults-effect', 'requires_approval',
+        '--quiet',
+      ], sandbox);
+      const byKey = (key: string) => readDraft(sandbox).policies
+        .find((policy) => policy.policyKey === key)?.defaults;
+      expect(byKey('gate')).toEqual({ effect: 'requires_approval' });
+
+      await runToolkit([
+        'policies', 'add-policy',
+        '--policy-key', 'described-gate',
+        '--defaults-effect', 'requires_approval',
+        '--approval-reason', 'PII export',
+        '--approvers', 'security, privacy',
+        '--approval-expires-in-seconds', '900',
+        '--quiet',
+      ], sandbox);
+      expect(byKey('described-gate')).toEqual({
+        effect: 'requires_approval',
+        approval: {
+          reason: 'PII export', approvers: ['security', 'privacy'], expiresInSeconds: 900,
+        },
+      });
+
+      const bad = await runToolkit([
+        'policies', 'add-policy',
+        '--policy-key', 'bad-gate',
+        '--defaults-effect', 'requires_approval',
+        '--approval-expires-in-seconds', '0',
+        '--quiet',
+      ], sandbox);
+      expect(bad.stderr).toContain('--approval-expires-in-seconds must be greater than zero');
+    });
+
     it('accepts a whole policy as JSON', async () => {
       const result = await runToolkit([
         'policies', 'add-policy',

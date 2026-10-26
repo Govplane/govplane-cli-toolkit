@@ -65,7 +65,9 @@ Or, from the CLI:
 govplane --install-kit
 ```
 
-**Requirements:** Node.js 20 or later.
+**Requirements:** Node.js 22.23.4+, 24.22.1+ or 26.12.1+, the releases that fix CVE-2026-111497
+(Brotli decompression). Node.js 20 and 25 never received the fix and are not
+supported.
 
 ## Activation
 
